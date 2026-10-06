@@ -15,6 +15,7 @@ DELTA = {
 }
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
+
 def check_bound(rect:pg.Rect) -> tuple[bool, bool]:# 戻り値2つなので、bool, bool
     """
     引数：こうかとんまたは爆弾のRect
@@ -32,6 +33,8 @@ def check_bound(rect:pg.Rect) -> tuple[bool, bool]:# 戻り値2つなので、bo
 # 演習1
 def gameover(screen: pg.Surface) -> None: # 演習1
     """
+    引数：creen：ゲーム画面surface
+    戻り値：なし
     こうかとんに爆弾が着弾し、画面をブラックアウト
     黒い画像と「Game Over」の文字列を5秒間表示
     """
@@ -56,6 +59,8 @@ def gameover(screen: pg.Surface) -> None: # 演習1
 # 演習 2
 def init_bb_imgs() -> tuple[list[pg.Surface], list[int]]:
     """
+    引数：なし
+    戻り値：タプル（r倍の爆弾surface、加速度）
     時間とともに爆弾が拡大、加速する
     """
     bb_imgs = [] # 爆弾surfaceを保存するリスト
@@ -66,9 +71,9 @@ def init_bb_imgs() -> tuple[list[pg.Surface], list[int]]:
         bb_img.set_colorkey((0, 0, 0)) # 爆弾の四隅を透過させる
         bb_imgs.append(bb_img)
 
-        bb_accs = [a for a in range(1, 11)] # 加速度のリスト
+    bb_accs = [a for a in range(1, 11)] # 加速度のリスト
 
-        return bb_imgs, bb_accs
+    return bb_imgs, bb_accs
 
 
 def main():
@@ -85,8 +90,6 @@ def main():
     bb_imgs, bb_accs = init_bb_imgs() # 演習2：爆弾の大きさ、加速度を渡して呼び出す
     
     bb_rct = bb_img.get_rect()
-    bb_rct.width = bb_img.get_rect().width # 演習2：こうかとんの大きさが変わったら、width属性を更新
-    bb_rct.height = bb_img.get_rect().height # 演習2：こうかとんの大きさが変わったら、width属性を更新
     bb_rct.centerx = random.randint(0, WIDTH) # 横座標用の乱数
     bb_rct.centery = random.randint(0, HEIGHT) # 縦座標用の乱数
     vx, vy = +5, +5 # 練習2 横、縦方向の速度設定
@@ -125,12 +128,22 @@ def main():
             kk_rct.move_ip(-sum_mv[0], -sum_mv[1]) # 先ほどの動きをキャンセル
         screen.blit(kk_img, kk_rct)
 
-        bb_rct.move_ip(vx, vy) # 爆弾を移動
+        # bb_rct.move_ip(vx, vy) # 爆弾を移動 演習2だといらない
         yoko, tate = check_bound(bb_rct)
         if not yoko: # yoko == False
             vx *= -1 # vxの符号反転
         if not tate:
             vy *= -1 # vyの符号反転
+
+        # 演習2
+        avx = vx * bb_accs[min(tmr//500, 9)] # 横方向の速度を加速
+        avy = vy * bb_accs[min(tmr//500, 9)] # 横方向の速度を加速
+        bb_img = bb_imgs[min(tmr//500, 9)] # 今の爆弾画像
+        bb_rct.move_ip(avx, avy) # 加速後の爆弾を動かす
+
+        new_rct = bb_img.get_rect() # 大きさ変わったこうかとん更新
+        bb_img.get_rect().width = new_rct.width # 演習2：幅width属性を更新
+        bb_img.get_rect().height = new_rct.height# 演習2：高さheight属性を更新
 
         screen.blit(bb_img, bb_rct) # 練習2：爆弾を表示
         pg.display.update()
