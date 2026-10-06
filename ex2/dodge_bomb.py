@@ -135,6 +135,9 @@ def main():
         if not tate:
             vy *= -1 # vyの符号反転
 
+        # 練習2：爆弾を表示
+        screen.blit(bb_img, bb_rct) 
+
         # 演習2
         avx = vx * bb_accs[min(tmr//500, 9)] # 横方向の速度を加速
         avy = vy * bb_accs[min(tmr//500, 9)] # 横方向の速度を加速
@@ -145,7 +148,6 @@ def main():
         bb_img.get_rect().width = new_rct.width # 演習2：幅width属性を更新
         bb_img.get_rect().height = new_rct.height# 演習2：高さheight属性を更新
 
-        screen.blit(bb_img, bb_rct) # 練習2：爆弾を表示
         pg.display.update()
         tmr += 1
         clock.tick(50)
