@@ -1,3 +1,4 @@
+import time
 import os
 import random
 import sys
@@ -27,6 +28,49 @@ def check_bound(rect:pg.Rect) -> tuple[bool, bool]:# 戻り値2つなので、bo
         tate = False
     return yoko, tate
 
+
+# 演習1
+def gameover(screen: pg.Surface) -> None: # 演習1
+    """
+    こうかとんに爆弾が着弾し、画面をブラックアウト
+    黒い画像と「Game Over」の文字列を5秒間表示
+    """
+    black_sfc = pg.Surface((WIDTH, HEIGHT)) # 画面全体覆うsurface作る
+    black_sfc.fill((0, 0, 0)) # surface 黒く塗りつぶす
+    black_sfc.set_alpha(200) # 透明度を設定
+
+    fonto = pg.font.Font(None, 80) # フォントサイズ80
+    txt = fonto.render("Game over", True, (255, 255, 255)) #白地で"Gameover"とかかれたsurfaceを生成
+    black_sfc.blit(txt, [400, 300]) # 黒い背景にsurfaceを文字を画面にはりつけ
+
+    kk_img = pg.image.load("fig/8.png") # 泣いてるこうかとん読み込む
+    black_sfc.blit(kk_img, (350, 300)) # こうかとんを黒い背景にはりつけ
+    black_sfc.blit(kk_img, (700, 300)) # こうかとん2体目
+
+    screen.blit(black_sfc, (0, 0))
+    pg.display.update() # 画面表示アップデート
+    time.sleep(5)
+    return
+
+
+# 演習 2
+def init_bb_imgs() -> tuple[list[pg.Surface], list[int]]:
+    """
+    時間とともに爆弾が拡大、加速する
+    """
+    bb_imgs = [] # 爆弾surfaceを保存するリスト
+
+    for r in range(1, 11):
+        bb_img = pg.Surface((20*r, 20*r)) # r倍のsurface
+        pg.draw.circle(bb_img, (255, 0, 0), (10*r, 10*r), 10*r) # Surfaceの中心にr倍の赤い円を書く
+        bb_img.set_colorkey((0, 0, 0)) # 爆弾の四隅を透過させる
+        bb_imgs.append(bb_img)
+
+        bb_accs = [a for a in range(1, 11)] # 加速度のリスト
+
+        return bb_imgs, bb_accs
+
+
 def main():
     pg.display.set_caption("逃げろ！こうかとん")
     screen = pg.display.set_mode((WIDTH, HEIGHT))
@@ -37,8 +81,12 @@ def main():
     bb_img = pg.Surface((20, 20)) # 空のsurface
     pg.draw.circle(bb_img, (255,0,0), (10,10), 10) # 赤い爆弾を作成
     bb_img.set_colorkey((0, 0, 0)) # 爆弾の四隅の黒を透過させる
+
+    bb_imgs, bb_accs = init_bb_imgs() # 演習2：爆弾の大きさ、加速度を渡して呼び出す
     
     bb_rct = bb_img.get_rect()
+    bb_rct.width = bb_img.get_rect().width # 演習2：こうかとんの大きさが変わったら、width属性を更新
+    bb_rct.height = bb_img.get_rect().height # 演習2：こうかとんの大きさが変わったら、width属性を更新
     bb_rct.centerx = random.randint(0, WIDTH) # 横座標用の乱数
     bb_rct.centery = random.randint(0, HEIGHT) # 縦座標用の乱数
     vx, vy = +5, +5 # 練習2 横、縦方向の速度設定
@@ -52,7 +100,7 @@ def main():
         screen.blit(bg_img, [0, 0]) 
 
         if kk_rct.colliderect(bb_rct): # 練習4：kkとbbのrctが重なっていたら
-            print("game over") # 練習4：爆弾当たったらゲームオーバー
+            gameover(screen) # 演習1：爆弾当たったらゲームオーバー関数呼び出し
             return
 
 
