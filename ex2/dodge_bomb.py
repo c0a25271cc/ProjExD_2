@@ -14,8 +14,18 @@ DELTA = {
 }
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
-def check_bound():
-    
+def check_bound(rect:pg.Rect) -> tuple[bool, bool]:# 戻り値2つなので、bool, bool
+    """
+    引数：こうかとんまたは爆弾のRect
+    戻り値：タプル（横方向判定結果, 縦方向判定結果）
+    画面内ならTrue, 画面外ならFalse
+    """
+    yoko, tate = True, True
+    if rect.left < 0 or WIDTH < rect.right: # 横方向判定
+        yoko = False
+    if rect.top < 0 or HEIGHT < rect.bottom: # 縦方向判定
+        tate = False
+    return yoko, tate
 
 def main():
     pg.display.set_caption("逃げろ！こうかとん")
@@ -31,16 +41,20 @@ def main():
     bb_rct = bb_img.get_rect()
     bb_rct.centerx = random.randint(0, WIDTH) # 横座標用の乱数
     bb_rct.centery = random.randint(0, HEIGHT) # 縦座標用の乱数
-    vx = +5 # 練習2 横方向の速度設定
-    vy = + 5 # 縦方向の速度設定
-
+    vx, vy = +5, +5 # 練習2 横、縦方向の速度設定
     clock = pg.time.Clock()
     tmr = 0
+
     while True:
         for event in pg.event.get():
             if event.type == pg.QUIT: 
                 return
         screen.blit(bg_img, [0, 0]) 
+
+        if kk_rct.colliderect(bb_rct): # 練習4：kkとbbのrctが重なっていたら
+            print("game over") # 練習4：爆弾当たったらゲームオーバー
+            return
+
 
         key_lst = pg.key.get_pressed()
         sum_mv = [0, 0]
@@ -58,13 +72,19 @@ def main():
                 sum_mv[0] += tpl[0] # 横方向移動量
                 sum_mv[1] += tpl[1] # 縦方向移動量
 
-            
-        
         kk_rct.move_ip(sum_mv)
+        if check_bound(kk_rct) != (True, True): # どこかしらはみでてる
+            kk_rct.move_ip(-sum_mv[0], -sum_mv[1]) # 先ほどの動きをキャンセル
         screen.blit(kk_img, kk_rct)
 
-        bb_rct.move_ip(vx, vy) # 爆弾を現在の速度だけ移動
-        screen.blit(bb_img, bb_rct) # 移動後の位置に爆弾を表示
+        bb_rct.move_ip(vx, vy) # 爆弾を移動
+        yoko, tate = check_bound(bb_rct)
+        if not yoko: # yoko == False
+            vx *= -1 # vxの符号反転
+        if not tate:
+            vy *= -1 # vyの符号反転
+
+        screen.blit(bb_img, bb_rct) # 練習2：爆弾を表示
         pg.display.update()
         tmr += 1
         clock.tick(50)
